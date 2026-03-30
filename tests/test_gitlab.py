@@ -66,6 +66,9 @@ def test_extract_task_id_no_match():
 def test_extract_task_id_wrong_format():
     assert extract_task_id("[LT-abc] Bad ID") is None
 
+def test_extract_task_id_zero():
+    assert extract_task_id("[LT-0] Edge case") == 0
+
 
 # strip_title_prefix
 
@@ -77,6 +80,9 @@ def test_strip_title_prefix_no_space():
 
 def test_strip_title_prefix_large_id():
     assert strip_title_prefix("[LT-1234] Something") == "Something"
+
+def test_strip_title_prefix_no_prefix():
+    assert strip_title_prefix("Fix login redirect") == "Fix login redirect"
 
 
 # extract_commit_subjects
@@ -95,3 +101,6 @@ def test_extract_commit_subjects_multiple():
 
 def test_extract_commit_subjects_empty():
     assert extract_commit_subjects([]) == []
+
+def test_extract_commit_subjects_empty_message():
+    assert extract_commit_subjects([Commit(message="")]) == [""]

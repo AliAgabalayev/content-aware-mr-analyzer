@@ -1,3 +1,4 @@
+import hmac
 import re
 
 from models import Commit, GitLabMRPayload
@@ -7,7 +8,9 @@ _PREFIX_RE = re.compile(r'^\[LT-\d+\]\s*')
 
 
 def validate_token(token: str | None, secret: str) -> bool:
-    return token == secret
+    if token is None:
+        return False
+    return hmac.compare_digest(token, secret)
 
 
 def is_merge_request_hook(event: str | None) -> bool:
