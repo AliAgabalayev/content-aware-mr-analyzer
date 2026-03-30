@@ -40,6 +40,20 @@ async def test_invalid_token_returns_403(client):
     assert response.status_code == 403
 
 
+# 1b. Missing token header entirely → 403
+
+@pytest.mark.asyncio
+async def test_missing_token_header_returns_403(client):
+    with respx.mock:
+        async with client as c:
+            response = await c.post(
+                "/webhook",
+                json=MERGE_PAYLOAD,
+                headers={"X-Gitlab-Event": "Merge Request Hook"},
+            )
+    assert response.status_code == 403
+
+
 # 2. Wrong event type → 200, Leantime not called
 
 @pytest.mark.asyncio
