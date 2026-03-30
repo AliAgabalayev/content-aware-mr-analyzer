@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import Depends, FastAPI, Header, Request, Response
+from pydantic import ValidationError
 
 from config import Settings, get_settings
 from handlers.discord import send_notification
@@ -34,7 +35,11 @@ async def webhook(
         return Response(status_code=200)
 
     body = await request.json()
-    payload = GitLabMRPayload.model_validate(body)
+    try:
+        payload = GitLabMRPayload.model_validate(body)
+    except ValidationError:
+        logger.warning("Invalid webhook payload structure")
+        return Response(status_code=422)
 
     if not is_merge_action(payload):
         return Response(status_code=200)

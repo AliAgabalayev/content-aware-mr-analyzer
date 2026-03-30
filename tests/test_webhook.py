@@ -30,12 +30,13 @@ def client():
 
 @pytest.mark.asyncio
 async def test_invalid_token_returns_403(client):
-    async with client as c:
-        response = await c.post(
-            "/webhook",
-            json=MERGE_PAYLOAD,
-            headers={"X-Gitlab-Token": "wrong", "X-Gitlab-Event": "Merge Request Hook"},
-        )
+    with respx.mock:
+        async with client as c:
+            response = await c.post(
+                "/webhook",
+                json=MERGE_PAYLOAD,
+                headers={"X-Gitlab-Token": "wrong", "X-Gitlab-Event": "Merge Request Hook"},
+            )
     assert response.status_code == 403
 
 
@@ -98,6 +99,20 @@ async def test_no_task_id_returns_200_no_leantime(client):
             response = await c.post("/webhook", json=payload, headers=MERGE_HEADERS)
     assert response.status_code == 200
     assert not leantime.called
+
+
+# 4b. Malformed payload → 422
+
+@pytest.mark.asyncio
+async def test_malformed_payload_returns_422(client):
+    with respx.mock:
+        async with client as c:
+            response = await c.post(
+                "/webhook",
+                json={"no_object_attributes": "missing"},
+                headers=MERGE_HEADERS,
+            )
+    assert response.status_code == 422
 
 
 # 5. Leantime non-200 → 200, Discord not called
